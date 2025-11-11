@@ -11,6 +11,8 @@ spring:
     property-naming-strategy: SNAKE_CASE
   flyway:
     enabled: true
+    baseline-on-migrate: true
+    baseline-version: 0
 
 audit:
   ingest-token: ${AUDIT_INGEST_TOKEN:dev-audit-token}
