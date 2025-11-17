@@ -2,11 +2,29 @@
 
 Spring Boot service for RudikCloud Milestone 5 audit ingestion and search.
 
-## Current scaffold
+## Features
 
 - Java 21 + Spring Boot
+- Flyway migration for `audit_events` table and indexes
 - `GET /health`
-- Dockerfile for containerized run
+- `POST /audit/events` (ingestion, token-protected)
+- `GET /audit/events` (search, token-protected)
+- `GET /audit/events/{id}` (detail, token-protected)
+
+## Environment variables
+
+- `DATABASE_URL`: JDBC URL for Postgres.
+  - Example: `jdbc:postgresql://postgres:5432/rudikcloud?user=rudik&password=rudik`
+- `AUDIT_INGEST_TOKEN`: shared internal token required via `X-Internal-Token` for `/audit/**`.
+- `PORT`: server port (default `8000`).
+
+## Run locally
+
+```bash
+docker run --rm -v "$PWD":/workspace -w /workspace \
+  maven:3.9.9-eclipse-temurin-21 mvn spring-boot:run \
+  -Dspring-boot.run.jvmArguments="-DPORT=8000 -DDATABASE_URL=jdbc:postgresql://localhost:5432/rudikcloud?user=rudik&password=rudik -DAUDIT_INGEST_TOKEN=dev-audit-token"
+```
 
 ## Run in Docker
 
@@ -17,3 +35,36 @@ docker run --rm -p 8004:8000 \
   -e AUDIT_INGEST_TOKEN='dev-audit-token' \
   audit-service-java
 ```
+
+## API examples
+
+```bash
+# health
+curl -i http://127.0.0.1:8004/health
+
+# ingest event (requires token)
+curl -i -X POST http://127.0.0.1:8004/audit/events \
+  -H 'Content-Type: application/json' \
+  -H 'X-Internal-Token: dev-audit-token' \
+  -d '{
+    "action_type": "FLAG_CREATED",
+    "actor_user_id": "user-1",
+    "actor_email": "user-1@example.com",
+    "resource_type": "FLAG",
+    "resource_id": "newCheckout:dev",
+    "before_json": null,
+    "after_json": {"enabled": true, "rollout_percent": 100},
+    "metadata_json": {"source": "flags-service"},
+    "created_at": "2026-03-10T12:00:00Z"
+  }'
+
+# search by action + resource type
+curl -i 'http://127.0.0.1:8004/audit/events?actionType=FLAG_CREATED&resourceType=FLAG&limit=50&offset=0' \
+  -H 'X-Internal-Token: dev-audit-token'
+```
+
+## Notes
+
+- Flyway runs automatically at startup (`V1__create_audit_events.sql`).
+- Search supports filters:
+  - `actionType`, `actorUserId`, `resourceType`, `resourceId`, `from`, `to`, `limit`, `offset`.
