@@ -2,6 +2,8 @@ server:
   port: ${PORT:8000}
 
 spring:
+  application:
+    name: ${OTEL_SERVICE_NAME:audit-service-java}
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/rudikcloud?user=rudik&password=rudik}
   jpa:
@@ -16,3 +18,11 @@ spring:
 
 audit:
   ingest-token: ${AUDIT_INGEST_TOKEN:dev-audit-token}
+
+management:
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_ENDPOINT:http://localhost:4318/v1/traces}
