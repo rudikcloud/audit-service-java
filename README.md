@@ -17,6 +17,10 @@ Spring Boot service for RudikCloud Milestone 5 audit ingestion and search.
   - Example: `jdbc:postgresql://postgres:5432/rudikcloud?user=rudik&password=rudik`
 - `AUDIT_INGEST_TOKEN`: shared internal token required via `X-Internal-Token` for `/audit/**`.
 - `PORT`: server port (default `8000`).
+- `OTEL_SERVICE_NAME`: service name for tracing (default `audit-service-java`).
+- `OTEL_EXPORTER_OTLP_ENDPOINT`: OTLP traces endpoint used by Spring Boot tracing.
+  - Local host example: `http://localhost:4318/v1/traces`
+  - Docker Compose example: `http://otel-collector:4318/v1/traces`
 
 ## Run locally
 
@@ -68,3 +72,11 @@ curl -i 'http://127.0.0.1:8004/audit/events?actionType=FLAG_CREATED&resourceType
 - Flyway runs automatically at startup (`V1__create_audit_events.sql`).
 - Search supports filters:
   - `actionType`, `actorUserId`, `resourceType`, `resourceId`, `from`, `to`, `limit`, `offset`.
+
+## Observability verification
+
+With infra observability enabled:
+
+1. Call `POST /audit/events` and `GET /audit/events`.
+2. Open Grafana (`http://localhost:3001`) and Explore with the Tempo datasource.
+3. Search traces with `service.name=audit-service-java`.
