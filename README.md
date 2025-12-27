@@ -1,3 +1,5 @@
+[![CI](https://github.com/rudikcloud/audit-service-java/actions/workflows/ci.yml/badge.svg)](https://github.com/rudikcloud/audit-service-java/actions/workflows/ci.yml)
+
 # audit-service-java
 
 `audit-service-java` is the central audit trail service for RudikCloud. It ingests immutable audit events from platform services and provides searchable history APIs.
